@@ -22,31 +22,22 @@ app.get("/posts", authTokenMiddleware, (req, res) => {
 	}));
 });
 
-app.post("/login", (req, res) => {
-	const username = req.body.username;
-	//const user = { name: username };
-
-	const access_token = jwt.sign({ username }, SECRET, { expiresIn: "24h"});
-
-	return res.json({accessToken: access_token});
-
-});
-
-
 function authTokenMiddleware(req, res, next) {
 	// BEARER Token
 	const auth_header = req.headers["authorization"];
+
 	const access_token = auth_header && auth_header.split(" ")[1];
 	if(access_token==null) {
 		return res.sendStatus(401);
 	}
+	console.log(`authTokenMiddleware: access_token: ${access_token}`);
 
-	jwt.verify(access_token, SECRET, (err, user) => {
+	jwt.verify(access_token, SECRET, (err, payload) => {
+		console.log(`authTokenMiddleware: verify err: ${err}  user: ${JSON.stringify(payload)}`);
 		if(err) {
 			return res.sendStatus(403).json(err.toString());
 		}
-
-		req.user = user.username;
+		req.user = payload.user;
 		next();
 	})
 }
